@@ -163,13 +163,34 @@ class _Mobile_part {
   )   : assert(radius != null),
         assert(radius >= _min_radius),
         assert(radius <= _max_radius),
-        assert(color != null);
+        assert(color != null) {
+    weight = 2 * pi * radius * radius;
+  }
 
   final double radius;
   final Color color;
   final double gap;
   Offset center = Offset(0, 0);
   double displayRadius;
+  double weight;
+}
+
+class _CrossBar {
+  _CrossBar(this.partEnd, this.joinEnd) {
+    balanceRatio = partEnd.weight / (partEnd.weight + joinEnd.weight);
+  }
+
+  Offset getCenter() {
+    return Offset(
+        partEnd.center.dx * balanceRatio +
+            joinEnd.center.dx * (1 - balanceRatio),
+        partEnd.center.dy * balanceRatio +
+            joinEnd.center.dy * (1 - balanceRatio));
+  }
+
+  final _Mobile_part partEnd;
+  final _Mobile_part joinEnd;
+  double balanceRatio; //  partEnd.weight/joinEnd.weight
 }
 
 class BobsCustomPainter extends CustomPainter {
@@ -182,7 +203,6 @@ class BobsCustomPainter extends CustomPainter {
     paint.color = Color(0xfff7f4ef); //  super_white
     Rect rect = new Rect.fromLTWH(0, 0, s, s);
     canvas.drawRect(rect, paint);
-
 
     List<_Mobile_part> _mobileParts = [
       _Mobile_part(6.4, _red, -2),
@@ -197,8 +217,29 @@ class BobsCustomPainter extends CustomPainter {
     double lastX = 0.2 * s;
     double y = 0.5 * s;
 
-    //  locate parts
+    //  compute weight
     _Mobile_part lastPart = null;
+    for (int i = _mobileParts.length - 1; i >= 0; i--) {
+      _Mobile_part part = _mobileParts[i];
+      if (lastPart != null) {
+        part.weight += lastPart.weight;
+      }
+      lastPart = part;
+    }
+
+    //  compute cross arms
+    lastPart = null;
+    for (int i = _mobileParts.length - 1; i >= 0; i--) {
+      _Mobile_part part = _mobileParts[i];
+      if (lastPart != null) {
+        _CrossBar _crossBar = new _CrossBar(part, lastPart);
+        crossBars.add(_crossBar);
+      }
+      lastPart = part;
+    }
+
+    //  locate parts
+    lastPart = null;
     for (int i = 0; i < _mobileParts.length; i++) {
       _Mobile_part part = _mobileParts[i];
       if (lastPart != null) {
@@ -217,13 +258,13 @@ class BobsCustomPainter extends CustomPainter {
     //  draw cross members
     lastPart = null;
     paint.color = _black;
-    for (int i = 0; i < _mobileParts.length; i++) {
-      _Mobile_part part = _mobileParts[i];
-      if (lastPart != null) {
-        paint.strokeWidth = 2;
-        canvas.drawLine(lastPart.center, part.center, paint);
-      }
-      lastPart = part;
+    for (int i = 0; i < crossBars.length; i++) {
+      _CrossBar _crossBar = crossBars[i];
+
+      paint.strokeWidth = 2;
+      canvas.drawLine(
+          _crossBar.partEnd.center, _crossBar.joinEnd.center, paint);
+      canvas.drawCircle(_crossBar.getCenter(), 6, paint);
     }
 
     for (int i = 0; i < _mobileParts.length; i++) {
@@ -240,4 +281,6 @@ class BobsCustomPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) {
     return false;
   }
+
+  List<_CrossBar> crossBars = new List();
 }
