@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'dart:math' as prefix0;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -154,10 +156,10 @@ const double _min_radius = 3;
 const double _max_radius = 7;
 
 class _Mobile_part {
-  const _Mobile_part(
+  _Mobile_part(
     this.radius,
     this.color,
-      this.gap,
+    this.gap,
   )   : assert(radius != null),
         assert(radius >= _min_radius),
         assert(radius <= _max_radius),
@@ -166,6 +168,8 @@ class _Mobile_part {
   final double radius;
   final Color color;
   final double gap;
+  Offset center = Offset(0, 0);
+  double displayRadius;
 }
 
 class BobsCustomPainter extends CustomPainter {
@@ -179,46 +183,56 @@ class BobsCustomPainter extends CustomPainter {
     Rect rect = new Rect.fromLTWH(0, 0, s, s);
     canvas.drawRect(rect, paint);
 
-    double gap = 0.02 * s;
 
     List<_Mobile_part> _mobileParts = [
       _Mobile_part(6.4, _red, -2),
       _Mobile_part(5.6, _green, -2),
       _Mobile_part(4.8, _blue, -2),
-      _Mobile_part(4.3, _black, 2),
+      _Mobile_part(4.3, _black, 1),
       _Mobile_part(4, _red, -2),
-      _Mobile_part(3.6, _green, -2),
+      _Mobile_part(3.6, _green, 2),
       _Mobile_part(3, _blue, 2),
     ];
-
 
     double lastX = 0.2 * s;
     double y = 0.5 * s;
 
-    Offset p1;
-    Offset p2 = Offset(lastX, y);
+    //  locate parts
+    _Mobile_part lastPart = null;
+    for (int i = 0; i < _mobileParts.length; i++) {
+      _Mobile_part part = _mobileParts[i];
+      if (lastPart != null) {
+        lastX += lastPart.gap / 100 * s + lastPart.displayRadius;
+      }
+      lastPart = part;
 
-    for ( int i = 0; i < _mobileParts.length; i++ ){
+      //  scale to display size
+      double r = part.radius / 100 * s;
+      part.displayRadius = r;
+      lastX += r;
+
+      part.center = new Offset(lastX, y);
+    }
+
+    //  draw cross members
+    lastPart = null;
+    paint.color = _black;
+    for (int i = 0; i < _mobileParts.length; i++) {
+      _Mobile_part part = _mobileParts[i];
+      if (lastPart != null) {
+        paint.strokeWidth = 2;
+        canvas.drawLine(lastPart.center, part.center, paint);
+      }
+      lastPart = part;
+    }
+
+    for (int i = 0; i < _mobileParts.length; i++) {
       //  draw cross members
       _Mobile_part part = _mobileParts[i];
-      p1 = p2;
-      double r = part.radius / 100 * s;
-      lastX += part.gap/100*s + r;
-      p2 = Offset(lastX, p2.dy);
-
-      if ( i > 0 && i < _mobileParts.length-1 ){
-        _Mobile_part nextPart = _mobileParts[i+1];
-        paint.color = _black;
-        paint.strokeWidth = 2;
-
-        canvas.drawLine(p1, p2, paint);
-      }
 
       //  draw the part
       paint.color = part.color;
-      canvas.drawCircle(p2, r, paint);
-
-      lastX += r;
+      canvas.drawCircle(part.center, part.displayRadius, paint);
     }
   }
 
