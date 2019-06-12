@@ -5,10 +5,11 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
-const Color _blue = Colors.blue;
-const Color _black = Colors.black;
-const Color _green = Color(0xff6bde54);
-const Color _red = Color(0xffcc3030);
+const int _alpha = 0x80000000;
+const Color _blue = Color(_alpha + 0x2196F3);
+const Color _black = Color(_alpha + 0);
+const Color _green = Color(_alpha + 0x6bde54);
+const Color _red = Color(_alpha + 0xcc3030);
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -121,8 +122,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 IconButton(
                   onPressed: _decrementCounter,
                   icon: Icon(Icons.remove),
-                  color: _black,
-                  highlightColor: _blue,
+                  color: Colors.black,
+                  highlightColor: Colors.blue,
                   tooltip: "decrement the part count",
                 ),
                 Spacer(),
@@ -134,8 +135,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 IconButton(
                   onPressed: _incrementCounter,
                   icon: Icon(Icons.add),
-                  color: _black,
-                  highlightColor: _blue,
+                  color: Colors.black,
+                  highlightColor: Colors.blue,
                   tooltip: "increment the part count",
                 ),
                 Spacer(),
@@ -257,7 +258,7 @@ class BobsCustomPainter extends CustomPainter {
 
     //  draw cross members
     lastPart = null;
-    paint.color = _black;
+    paint.color = Colors.black;
     for (int i = 0; i < crossBars.length; i++) {
       _CrossBar _crossBar = crossBars[i];
 
