@@ -1,4 +1,5 @@
 import 'dart:math';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
@@ -156,6 +157,7 @@ const double _min_radius = 3;
 const double _max_radius = 7;
 
 class _Centered_part {
+  void paint(Canvas canvas) {}
   Offset center = Offset(0, 0);
   double weight;
 }
@@ -170,6 +172,14 @@ class _Mobile_part extends _Centered_part {
         assert(radius <= _max_radius),
         assert(color != null) {
     weight = 2 * pi * radius * radius;
+  }
+
+  @override
+  void paint(Canvas canvas) {
+    //  draw the part
+    final paint = Paint();
+    paint.color = color;
+    canvas.drawCircle(center, displayRadius, paint);
   }
 
   final double radius;
@@ -193,91 +203,103 @@ class _CrossBar extends _Centered_part {
     joinLength = d * (1 - balanceRatio);
   }
 
+  @override
+  void paint(Canvas canvas) {
+    //  draw the part
+
+    //  up view
+    final paint = Paint();
+    paint.color = Colors.black;
+    paint.strokeWidth = 3;
+    canvas.drawLine(partEnd.center, joinEnd.center, paint);
+    canvas.drawCircle(center, 6, paint);
+
+    //  side view
+    double y = 25.0 + 25 * _height;
+    canvas.drawLine(Offset(partEnd.center.dx, y), Offset(joinEnd.center.dx,y), paint);
+    canvas.drawCircle(Offset(center.dx,y), 6, paint);
+  }
+
   final _Mobile_part partEnd;
   final _Centered_part joinEnd;
   double balanceRatio; //  partEnd.weight/joinEnd.weight
   double partLength;
   double joinLength;
   double theta = 0;
+  int _height;
 }
 
 class BobsCustomPainter extends CustomPainter {
-
   @override
   void paint(Canvas canvas, Size size) {
     assert(size.width > 0 || size.height > 0);
     double s = max(size.width, size.height);
 
-    final paint = Paint();
-    paint.color = Color(0xfff7f4ef); //  super_white
-    Rect rect = new Rect.fromLTWH(0, 0, s, s);
-    canvas.drawRect(rect, paint);
+    try {
+      final paint = Paint();
+      paint.color = Color(0xfff7f4ef); //  super_white
+      Rect rect = new Rect.fromLTWH(0, 0, s, s);
+      canvas.drawRect(rect, paint);
 
-    if ( _crossBars.isEmpty ) {
+      if (_crossBars.isEmpty) {
+        double lastX = 0.2 * s;
+        double y = 0.5 * s;
 
-      double lastX = 0.2 * s;
-      double y = 0.5 * s;
-
-      //  compute weight
-      _Mobile_part lastPart;
-      for (int i = _mobileParts.length - 1; i >= 0; i--) {
-        _Mobile_part part = _mobileParts[i];
-        if (lastPart != null) {
-          part.weight += lastPart.weight;
-        }
-        lastPart = part;
-      }
-
-      //  locate parts initial position
-      lastPart = null;
-      for (int i = 0; i < _mobileParts.length; i++) {
-        _Mobile_part part = _mobileParts[i];
-        if (lastPart != null) {
-          lastX += lastPart.gap / 100 * s + lastPart.displayRadius;
-        }
-        lastPart = part;
-
-        //  scale to display size
-        double r = part.radius / 100 * s;
-        part.displayRadius = r;
-        lastX += r;
-
-        part.center = new Offset(lastX, y);
-      }
-
-      //  compute cross arms
-          {
-        _Centered_part lastCenteredPart;
+        //  compute weight
+        _Mobile_part lastPart;
         for (int i = _mobileParts.length - 1; i >= 0; i--) {
           _Mobile_part part = _mobileParts[i];
-          if (lastCenteredPart != null) {
-            _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
-            _crossBars.add(_crossBar);
-            lastCenteredPart = _crossBar;
-          } else
-            lastCenteredPart = part;
+          if (lastPart != null) {
+            part.weight += lastPart.weight;
+          }
+          lastPart = part;
+        }
+
+        //  locate parts initial position
+        lastPart = null;
+        for (int i = 0; i < _mobileParts.length; i++) {
+          _Mobile_part part = _mobileParts[i];
+          if (lastPart != null) {
+            lastX += lastPart.gap / 100 * s + lastPart.displayRadius;
+          }
+          lastPart = part;
+
+          //  scale to display size
+          double r = part.radius / 100 * s;
+          part.displayRadius = r;
+          lastX += r;
+
+          part.center = new Offset(lastX, y);
+        }
+
+        //  compute cross arms
+        {
+          _Centered_part lastCenteredPart;
+          for (int i = _mobileParts.length - 1; i >= 0; i--) {
+            _Mobile_part part = _mobileParts[i];
+            if (lastCenteredPart != null) {
+              _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
+              _crossBar._height = i;
+              _crossBars.add(_crossBar);
+              lastCenteredPart = _crossBar;
+            } else
+              lastCenteredPart = part;
+          }
         }
       }
-    }
 
-    //  draw cross members
-    paint.color = Colors.black;
-    for (int i = 0; i < _crossBars.length; i++) {
-      _CrossBar _crossBar = _crossBars[i];
+      //  paint cross members
+      for (_CrossBar _crossBar in _crossBars) {
+        _crossBar.paint(canvas);
+      }
 
-      paint.strokeWidth = 2;
-      canvas.drawLine(
-          _crossBar.partEnd.center, _crossBar.joinEnd.center, paint);
-      canvas.drawCircle(_crossBar.center, 6, paint);
-    }
-
-    for (int i = 0; i < _mobileParts.length; i++) {
-      //  draw cross members
-      _Mobile_part part = _mobileParts[i];
-
-      //  draw the part
-      paint.color = part.color;
-          canvas.drawCircle(part.center, part.displayRadius, paint);
+      //  paint parts
+      for (_Mobile_part _mobilePart in _mobileParts) {
+        _mobilePart.paint(canvas);
+      }
+    } catch (exception, stackTrace) {
+      print(exception);
+      print(stackTrace);
     }
   }
 
