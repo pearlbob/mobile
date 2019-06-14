@@ -155,11 +155,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
 const double _min_radius = 3;
 const double _max_radius = 7;
+const double sideViewHeight = 25;
 
 class _Centered_part {
   void paint(Canvas canvas) {}
   Offset center = Offset(0, 0);
   double weight;
+
+  void setHeight(int height) {
+    _height = height;
+  }
+
+  int _height = 1;
 }
 
 class _Mobile_part extends _Centered_part {
@@ -180,6 +187,17 @@ class _Mobile_part extends _Centered_part {
     final paint = Paint();
     paint.color = color;
     canvas.drawCircle(center, displayRadius, paint);
+
+    //  side view
+    paint.strokeWidth = 3;
+    paint.color = Colors.black;
+    double y = sideViewHeight + sideViewHeight * _height;
+    canvas.drawLine(Offset(center.dx, y-sideViewHeight),
+        Offset(center.dx, y), paint);
+
+    paint.color = color;
+    canvas.drawLine(Offset(center.dx - displayRadius, y),
+        Offset(center.dx + displayRadius, y), paint);
   }
 
   final double radius;
@@ -215,9 +233,23 @@ class _CrossBar extends _Centered_part {
     canvas.drawCircle(center, 6, paint);
 
     //  side view
-    double y = 25.0 + 25 * _height;
-    canvas.drawLine(Offset(partEnd.center.dx, y), Offset(joinEnd.center.dx,y), paint);
-    canvas.drawCircle(Offset(center.dx,y), 6, paint);
+    double y = sideViewHeight + sideViewHeight * _height;
+    canvas.drawLine(
+        Offset(partEnd.center.dx, y), Offset(joinEnd.center.dx, y), paint);
+    canvas.drawCircle(Offset(center.dx, y), 6, paint);
+    canvas.drawLine(Offset(joinEnd.center.dx, y),
+        Offset(joinEnd.center.dx, y+sideViewHeight), paint);
+
+    //  recurse down
+    partEnd.paint(canvas);
+    joinEnd.paint(canvas);
+  }
+
+  @override
+  void setHeight(int height) {
+    super.setHeight(height);
+    partEnd.setHeight(height+1);
+    joinEnd.setHeight(height+1);
   }
 
   final _Mobile_part partEnd;
@@ -226,7 +258,6 @@ class _CrossBar extends _Centered_part {
   double partLength;
   double joinLength;
   double theta = 0;
-  int _height;
 }
 
 class BobsCustomPainter extends CustomPainter {
@@ -279,24 +310,16 @@ class BobsCustomPainter extends CustomPainter {
             _Mobile_part part = _mobileParts[i];
             if (lastCenteredPart != null) {
               _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
-              _crossBar._height = i;
               _crossBars.add(_crossBar);
               lastCenteredPart = _crossBar;
             } else
               lastCenteredPart = part;
           }
         }
+        _crossBars.last?.setHeight(0);
       }
 
-      //  paint cross members
-      for (_CrossBar _crossBar in _crossBars) {
-        _crossBar.paint(canvas);
-      }
-
-      //  paint parts
-      for (_Mobile_part _mobilePart in _mobileParts) {
-        _mobilePart.paint(canvas);
-      }
+      _crossBars.last?.paint(canvas);
     } catch (exception, stackTrace) {
       print(exception);
       print(stackTrace);
