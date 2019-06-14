@@ -210,7 +210,7 @@ class _Mobile_part extends _Centered_part {
 class _CrossBar extends _Centered_part {
   _CrossBar(this.partEnd, this.joinEnd) {
     weight = partEnd.weight + joinEnd.weight;
-    balanceRatio = partEnd.weight / weight;
+    balanceRatio = joinEnd.weight / weight;
     double d = (partEnd.center - joinEnd.center).distance;
     center = Offset(
         partEnd.center.dx * balanceRatio +
@@ -219,11 +219,14 @@ class _CrossBar extends _Centered_part {
             joinEnd.center.dy * (1 - balanceRatio));
     partLength = d * balanceRatio;
     joinLength = d * (1 - balanceRatio);
+    assert( (partEnd.weight*partLength - joinEnd.weight*joinLength).abs() < 1e-9);
   }
 
   @override
   void paint(Canvas canvas) {
     //  draw the part
+    partEnd.center = Offset( center.dx-partLength*cos(theta),center.dy-partLength*sin(theta));
+    joinEnd.center = Offset( center.dx+joinLength*cos(theta),center.dy+joinLength*sin(theta));
 
     //  up view
     final paint = Paint();
@@ -273,7 +276,7 @@ class BobsCustomPainter extends CustomPainter {
       canvas.drawRect(rect, paint);
 
       if (_crossBars.isEmpty) {
-        double lastX = 0.2 * s;
+        double lastX = 0.5 * s;
         double y = 0.5 * s;
 
         //  compute weight
@@ -306,18 +309,24 @@ class BobsCustomPainter extends CustomPainter {
         //  compute cross arms
         {
           _Centered_part lastCenteredPart;
+          double dTheta = pi /25;
+          double theta = 0;
           for (int i = _mobileParts.length - 1; i >= 0; i--) {
             _Mobile_part part = _mobileParts[i];
             if (lastCenteredPart != null) {
               _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
+              theta += dTheta;
+              _crossBar.theta = theta;
               _crossBars.add(_crossBar);
               lastCenteredPart = _crossBar;
             } else
               lastCenteredPart = part;
           }
         }
+        _crossBars.last?.center=Offset(0.5 * s, y);
         _crossBars.last?.setHeight(0);
       }
+
 
       _crossBars.last?.paint(canvas);
     } catch (exception, stackTrace) {
@@ -332,13 +341,13 @@ class BobsCustomPainter extends CustomPainter {
   }
 
   List<_Mobile_part> _mobileParts = [
-    _Mobile_part(6.4, _red, -2),
-    _Mobile_part(5.6, _green, -2),
-    _Mobile_part(4.8, _blue, -2),
-    _Mobile_part(4.3, _black, 1),
-    _Mobile_part(4, _red, -2),
+    _Mobile_part(6.4, _red, 2),
+    _Mobile_part(5.6, _green, 2),
+    _Mobile_part(4.8, _blue, -1),
+    _Mobile_part(4.3, _black, -2),
+    _Mobile_part(4, _red, -4),
     _Mobile_part(3.6, _green, 2),
-    _Mobile_part(3, _blue, 2),
+    _Mobile_part(3, _blue, 0),
   ];
   List<_CrossBar> _crossBars = new List();
 }
