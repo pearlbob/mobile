@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/gestures.dart';
@@ -54,6 +55,23 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 7;
+  int _t=0;
+  Timer _everyTick;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // sets first value
+    _t = DateTime.now().millisecondsSinceEpoch;
+
+    // defines a timer
+    _everyTick = Timer.periodic(Duration(milliseconds: 16), (Timer t) {
+      setState(() {
+        _t = DateTime.now().millisecondsSinceEpoch;
+      });
+    });
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -264,8 +282,10 @@ class _CrossBar extends _Centered_part {
 }
 
 class BobsCustomPainter extends CustomPainter {
+
   @override
   void paint(Canvas canvas, Size size) {
+    debugPrint( "BobsCustomPainter here");
     assert(size.width > 0 || size.height > 0);
     double s = max(size.width, size.height);
 
@@ -328,6 +348,9 @@ class BobsCustomPainter extends CustomPainter {
       }
 
 
+      theta += 0.01;//  todo: temp
+      _crossBars.last?.theta =theta;
+
       _crossBars.last?.paint(canvas);
     } catch (exception, stackTrace) {
       print(exception);
@@ -350,4 +373,6 @@ class BobsCustomPainter extends CustomPainter {
     _Mobile_part(3, _blue, 0),
   ];
   List<_CrossBar> _crossBars = new List();
+
+ double theta = 0.01;//  todo: temp
 }
