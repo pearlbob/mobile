@@ -12,6 +12,21 @@ const Color _black = Color(_alpha + 0);
 const Color _green = Color(_alpha + 0x6bde54);
 const Color _red = Color(_alpha + 0xcc3030);
 
+List<_Mobile_part> _mobileParts = [
+  _Mobile_part(6.4, _red, 2),
+  _Mobile_part(5.6, _green, 2),
+  _Mobile_part(4.8, _blue, -1),
+  _Mobile_part(4.3, _black, -2),
+  _Mobile_part(4, _red, -4),
+  _Mobile_part(3.6, _green, 2),
+  _Mobile_part(3, _blue, 0),
+];
+List<_CrossBar> _crossBars = new List();
+
+double _theta = 0.01;//  todo: temp
+double _canvasSize = 800;
+
+
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -55,22 +70,73 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 7;
-  int _t=0;
   Timer _everyTick;
 
   @override
   void initState() {
     super.initState();
 
-    // sets first value
-    _t = DateTime.now().millisecondsSinceEpoch;
+
+    if (_crossBars.isEmpty) {
+      double lastX = 0.5 * _canvasSize;
+      double y = 0.5 * _canvasSize;
+
+      //  compute weight
+      _Mobile_part lastPart;
+      for (int i = _mobileParts.length - 1; i >= 0; i--) {
+        _Mobile_part part = _mobileParts[i];
+        if (lastPart != null) {
+          part.weight += lastPart.weight;
+        }
+        lastPart = part;
+      }
+
+      //  locate parts initial position
+      lastPart = null;
+      for (int i = 0; i < _mobileParts.length; i++) {
+        _Mobile_part part = _mobileParts[i];
+        if (lastPart != null) {
+          lastX += lastPart.gap / 100 * _canvasSize + lastPart.displayRadius;
+        }
+        lastPart = part;
+
+        //  scale to display size
+        double r = part.radius / 100 * _canvasSize;
+        part.displayRadius = r;
+        lastX += r;
+
+        part.center = new Offset(lastX, y);
+      }
+
+      //  compute cross arms
+          {
+        _Centered_part lastCenteredPart;
+        double dTheta = pi /25;
+        double theta = 0;
+        for (int i = _mobileParts.length - 1; i >= 0; i--) {
+          _Mobile_part part = _mobileParts[i];
+          if (lastCenteredPart != null) {
+            _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
+            theta += dTheta;
+            _crossBar.theta = theta;
+            _crossBars.add(_crossBar);
+            lastCenteredPart = _crossBar;
+          } else
+            lastCenteredPart = part;
+        }
+      }
+      _crossBars.last?.center=Offset(0.5 * _canvasSize, y);
+      _crossBars.last?.setHeight(0);
+    }
 
     // defines a timer
     _everyTick = Timer.periodic(Duration(milliseconds: 16), (Timer t) {
       setState(() {
-        _t = DateTime.now().millisecondsSinceEpoch;
+        //  just tick to force repaint
       });
     });
+
+
   }
 
   void _incrementCounter() {
@@ -174,6 +240,7 @@ class _MyHomePageState extends State<MyHomePage> {
 const double _min_radius = 3;
 const double _max_radius = 7;
 const double sideViewHeight = 25;
+
 
 class _Centered_part {
   void paint(Canvas canvas) {}
@@ -285,9 +352,10 @@ class BobsCustomPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    debugPrint( "BobsCustomPainter here");
+
+
     assert(size.width > 0 || size.height > 0);
-    double s = max(size.width, size.height);
+    _canvasSize = max(size.width, size.height);
 
     try {
       final paint = Paint();
@@ -295,63 +363,12 @@ class BobsCustomPainter extends CustomPainter {
       Rect rect = new Rect.fromLTWH(0, 0, s, s);
       canvas.drawRect(rect, paint);
 
-      if (_crossBars.isEmpty) {
-        double lastX = 0.5 * s;
-        double y = 0.5 * s;
-
-        //  compute weight
-        _Mobile_part lastPart;
-        for (int i = _mobileParts.length - 1; i >= 0; i--) {
-          _Mobile_part part = _mobileParts[i];
-          if (lastPart != null) {
-            part.weight += lastPart.weight;
-          }
-          lastPart = part;
-        }
-
-        //  locate parts initial position
-        lastPart = null;
-        for (int i = 0; i < _mobileParts.length; i++) {
-          _Mobile_part part = _mobileParts[i];
-          if (lastPart != null) {
-            lastX += lastPart.gap / 100 * s + lastPart.displayRadius;
-          }
-          lastPart = part;
-
-          //  scale to display size
-          double r = part.radius / 100 * s;
-          part.displayRadius = r;
-          lastX += r;
-
-          part.center = new Offset(lastX, y);
-        }
-
-        //  compute cross arms
-        {
-          _Centered_part lastCenteredPart;
-          double dTheta = pi /25;
-          double theta = 0;
-          for (int i = _mobileParts.length - 1; i >= 0; i--) {
-            _Mobile_part part = _mobileParts[i];
-            if (lastCenteredPart != null) {
-              _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
-              theta += dTheta;
-              _crossBar.theta = theta;
-              _crossBars.add(_crossBar);
-              lastCenteredPart = _crossBar;
-            } else
-              lastCenteredPart = part;
-          }
-        }
-        _crossBars.last?.center=Offset(0.5 * s, y);
-        _crossBars.last?.setHeight(0);
-      }
-
-
-      theta += 0.01;//  todo: temp
-      _crossBars.last?.theta =theta;
+      _theta += 0.005;//  todo: temp
+      _crossBars.last?.theta =_theta;
 
       _crossBars.last?.paint(canvas);
+
+
     } catch (exception, stackTrace) {
       print(exception);
       print(stackTrace);
@@ -360,19 +377,7 @@ class BobsCustomPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
+    return true;
   }
 
-  List<_Mobile_part> _mobileParts = [
-    _Mobile_part(6.4, _red, 2),
-    _Mobile_part(5.6, _green, 2),
-    _Mobile_part(4.8, _blue, -1),
-    _Mobile_part(4.3, _black, -2),
-    _Mobile_part(4, _red, -4),
-    _Mobile_part(3.6, _green, 2),
-    _Mobile_part(3, _blue, 0),
-  ];
-  List<_CrossBar> _crossBars = new List();
-
- double theta = 0.01;//  todo: temp
 }
