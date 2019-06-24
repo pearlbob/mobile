@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
 
-const int _alpha = 0x80000000;
+const int _alpha = 0xff000000;
 const Color _blue = Color(_alpha + 0x2196F3);
 const Color _black = Color(_alpha + 0);
 const Color _green = Color(_alpha + 0x6bde54);
@@ -23,9 +23,8 @@ List<_Mobile_part> _mobileParts = [
 ];
 List<_CrossBar> _crossBars = new List();
 
-double _theta = 0.01;//  todo: temp
-double _canvasSize = 800;
-
+double _theta = 0.01; //  todo: temp
+double _canvasSize = 1440;
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -76,7 +75,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-
     if (_crossBars.isEmpty) {
       double lastX = 0.5 * _canvasSize;
       double y = 0.5 * _canvasSize;
@@ -109,9 +107,9 @@ class _MyHomePageState extends State<MyHomePage> {
       }
 
       //  compute cross arms
-          {
+      {
         _Centered_part lastCenteredPart;
-        double dTheta = pi /25;
+        double dTheta = pi / 25;
         double theta = 0;
         for (int i = _mobileParts.length - 1; i >= 0; i--) {
           _Mobile_part part = _mobileParts[i];
@@ -125,7 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
             lastCenteredPart = part;
         }
       }
-      _crossBars.last?.center=Offset(0.5 * _canvasSize, y);
+      _crossBars.last?.center = Offset(0.5 * _canvasSize, y);
       _crossBars.last?.setHeight(0);
     }
 
@@ -135,8 +133,6 @@ class _MyHomePageState extends State<MyHomePage> {
         //  just tick to force repaint
       });
     });
-
-
   }
 
   void _incrementCounter() {
@@ -241,7 +237,6 @@ const double _min_radius = 3;
 const double _max_radius = 7;
 const double sideViewHeight = 25;
 
-
 class _Centered_part {
   void paint(Canvas canvas) {}
   Offset center = Offset(0, 0);
@@ -271,15 +266,26 @@ class _Mobile_part extends _Centered_part {
     //  draw the part
     final paint = Paint();
     paint.color = color;
+    paint.style=PaintingStyle.fill;
     canvas.drawCircle(center, displayRadius, paint);
+
+    //  outline part
+    paint.color = Colors.black;
+    paint.strokeWidth = 1;
+    paint.style=PaintingStyle.stroke;
+    {
+      Path path = Path();
+      path.addArc(Rect.fromCircle(center: center,  radius: displayRadius), 0, 2*pi);
+      canvas.drawPath(path, paint);
+    }
 
     //  side view
     paint.strokeWidth = 3;
     paint.color = Colors.black;
+    paint.style=PaintingStyle.fill;
     double y = sideViewHeight + sideViewHeight * _height;
-    canvas.drawLine(Offset(center.dx, y-sideViewHeight),
-        Offset(center.dx, y), paint);
-
+    canvas.drawLine(
+        Offset(center.dx, y - sideViewHeight), Offset(center.dx, y), paint);
     paint.color = color;
     canvas.drawLine(Offset(center.dx - displayRadius, y),
         Offset(center.dx + displayRadius, y), paint);
@@ -304,14 +310,17 @@ class _CrossBar extends _Centered_part {
             joinEnd.center.dy * (1 - balanceRatio));
     partLength = d * balanceRatio;
     joinLength = d * (1 - balanceRatio);
-    assert( (partEnd.weight*partLength - joinEnd.weight*joinLength).abs() < 1e-9);
+    assert((partEnd.weight * partLength - joinEnd.weight * joinLength).abs() <
+        1e-9);
   }
 
   @override
   void paint(Canvas canvas) {
     //  draw the part
-    partEnd.center = Offset( center.dx-partLength*cos(theta),center.dy-partLength*sin(theta));
-    joinEnd.center = Offset( center.dx+joinLength*cos(theta),center.dy+joinLength*sin(theta));
+    partEnd.center = Offset(center.dx - partLength * cos(theta),
+        center.dy - partLength * sin(theta));
+    joinEnd.center = Offset(center.dx + joinLength * cos(theta),
+        center.dy + joinLength * sin(theta));
 
     //  up view
     final paint = Paint();
@@ -326,7 +335,7 @@ class _CrossBar extends _Centered_part {
         Offset(partEnd.center.dx, y), Offset(joinEnd.center.dx, y), paint);
     canvas.drawCircle(Offset(center.dx, y), 6, paint);
     canvas.drawLine(Offset(joinEnd.center.dx, y),
-        Offset(joinEnd.center.dx, y+sideViewHeight), paint);
+        Offset(joinEnd.center.dx, y + sideViewHeight), paint);
 
     //  recurse down
     partEnd.paint(canvas);
@@ -336,8 +345,8 @@ class _CrossBar extends _Centered_part {
   @override
   void setHeight(int height) {
     super.setHeight(height);
-    partEnd.setHeight(height+1);
-    joinEnd.setHeight(height+1);
+    partEnd.setHeight(height + 1);
+    joinEnd.setHeight(height + 1);
   }
 
   final _Mobile_part partEnd;
@@ -349,26 +358,28 @@ class _CrossBar extends _Centered_part {
 }
 
 class BobsCustomPainter extends CustomPainter {
-
   @override
   void paint(Canvas canvas, Size size) {
-
-
     assert(size.width > 0 || size.height > 0);
     _canvasSize = max(size.width, size.height);
 
     try {
       final paint = Paint();
       paint.color = Color(0xfff7f4ef); //  super_white
-      Rect rect = new Rect.fromLTWH(0, 0, s, s);
+      Rect rect = new Rect.fromLTWH(0, 0, _canvasSize, _canvasSize);
       canvas.drawRect(rect, paint);
 
-      _theta += 0.005;//  todo: temp
-      _crossBars.last?.theta =_theta;
+      {
+        //  todo: temp
+        _theta += 0.025;
+        double t = _theta;
+        for (_CrossBar _crossBar in _crossBars) {
+          _crossBar.theta = t;
+          t /= 2;
+        }
+      }
 
       _crossBars.last?.paint(canvas);
-
-
     } catch (exception, stackTrace) {
       print(exception);
       print(stackTrace);
@@ -379,5 +390,4 @@ class BobsCustomPainter extends CustomPainter {
   bool shouldRepaint(CustomPainter oldDelegate) {
     return true;
   }
-
 }
