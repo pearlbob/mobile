@@ -371,7 +371,7 @@ class BobsCustomPainter extends CustomPainter {
 
       {
         //  todo: temp
-        _theta += 0.025;
+        _theta += 0.02;
         double t = _theta;
         for (_CrossBar _crossBar in _crossBars) {
           _crossBar.theta = t;
