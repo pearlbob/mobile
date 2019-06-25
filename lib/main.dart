@@ -13,21 +13,22 @@ const Color _green = Color(_alpha + 0x6bde54);
 const Color _red = Color(_alpha + 0xcc3030);
 
 List<_Mobile_part> _mobileParts = [
-  _Mobile_part(10, _black, 2),//1
-  _Mobile_part(8.6, _green, 2),
-  _Mobile_part(7.4, _blue, 2),
+  _Mobile_part(10, _black, 4), //0
+  _Mobile_part(8.6, _green, 4),
+  _Mobile_part(7.4, _blue, 3),
   _Mobile_part(6.4, _red, 2),
-  _Mobile_part(5.6, _green, 2),//5
-  _Mobile_part(4.8, _blue, -1),
+  _Mobile_part(5.6, _green, 2),
+  _Mobile_part(4.8, _blue, 0), //5
   _Mobile_part(4.3, _black, -2),
   _Mobile_part(4, _red, -4),
   _Mobile_part(3.6, _green, 2),
-  _Mobile_part(3, _blue, 0),//10
+  _Mobile_part(3, _blue, 0), //9
 ];
 List<_CrossBar> _crossBars = new List();
 
 double _theta = 0.01; //  todo: temp
 double _canvasSize = 1440;
+int _counter = _mobileParts.length;
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -71,7 +72,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 7;
   Timer _everyTick;
 
   @override
@@ -79,55 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     if (_crossBars.isEmpty) {
-      double lastX = 0.5 * _canvasSize;
-      double y = 0.5 * _canvasSize;
-
-      //  compute weight
-      _Mobile_part lastPart;
-      for (int i = _mobileParts.length - 1; i >= 0; i--) {
-        _Mobile_part part = _mobileParts[i];
-        if (lastPart != null) {
-          part.weight += lastPart.weight;
-        }
-        lastPart = part;
-      }
-
-      //  locate parts initial position
-      lastPart = null;
-      for (int i = 0; i < _mobileParts.length; i++) {
-        _Mobile_part part = _mobileParts[i];
-        if (lastPart != null) {
-          lastX += lastPart.gap / 100 * _canvasSize + lastPart.displayRadius;
-        }
-        lastPart = part;
-
-        //  scale to display size
-        double r = part.radius / 100 * _canvasSize;
-        part.displayRadius = r;
-        lastX += r;
-
-        part.center = new Offset(lastX, y);
-      }
-
-      //  compute cross arms
-      {
-        _Centered_part lastCenteredPart;
-        double dTheta = pi / 25;
-        double theta = 0;
-        for (int i = _mobileParts.length - 1; i >= 0; i--) {
-          _Mobile_part part = _mobileParts[i];
-          if (lastCenteredPart != null) {
-            _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
-            theta += dTheta;
-            _crossBar.theta = theta;
-            _crossBars.add(_crossBar);
-            lastCenteredPart = _crossBar;
-          } else
-            lastCenteredPart = part;
-        }
-      }
-      _crossBars.last?.center = Offset(0.5 * _canvasSize, y);
-      _crossBars.last?.setHeight(0);
+      _initParts();
     }
 
     // defines a timer
@@ -138,6 +90,55 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _initParts() {
+    double lastX = 0.5 * _canvasSize;
+    double y = 0.5 * _canvasSize;
+
+    final int partLimit = _mobileParts.length - _counter;
+
+    //  locate parts initial position
+    {
+      _Mobile_part lastPart;
+      for (int i = partLimit; i < _mobileParts.length; i++) {
+        _Mobile_part part = _mobileParts[i];
+        if (lastPart != null) {
+          lastX += (lastPart.gap + lastPart.radius) / 100 * _canvasSize;
+        }
+        lastPart = part;
+
+        //  scale to display size
+        double r = part.radius / 100 * _canvasSize;
+        lastX += r;
+
+        part.center = new Offset(lastX, y);
+      }
+    }
+
+    //  compute cross arms
+    //  i.e. derive arm length from initial positions
+    //  derive balance points from weights
+    {
+      _crossBars.clear();
+      _Centered_part lastCenteredPart;
+      double dTheta = pi / 25;
+      double theta = 0;
+      for (int i = _mobileParts.length - 1; i >= partLimit; i--) {
+        _Mobile_part part = _mobileParts[i];
+        if (lastCenteredPart != null) {
+          _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
+          theta += dTheta;
+          _crossBar.theta = theta;
+          _crossBars.add(_crossBar);
+          lastCenteredPart = _crossBar;
+        } else
+          lastCenteredPart = part;
+      }
+    }
+
+    _crossBars.last?.center = Offset(0.5 * _canvasSize, y);
+    _crossBars.last?.setHeight(0);
+  }
+
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -145,7 +146,10 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      if (_counter < 10) _counter++;
+      if (_counter < _mobileParts.length ) {
+        _counter++;
+        _initParts();
+      }
     });
   }
 
@@ -156,7 +160,10 @@ class _MyHomePageState extends State<MyHomePage> {
       // so that the display can reflect the updated values. If we changed
       // _counter without calling setState(), then the build method would not be
       // called again, and so nothing would appear to happen.
-      if (_counter > 3) _counter--;
+      if (_counter > 3) {
+        _counter--;
+        _initParts();
+      }
     });
   }
 
@@ -269,23 +276,26 @@ class _Mobile_part extends _Centered_part {
     //  draw the part
     final paint = Paint();
     paint.color = color;
-    paint.style=PaintingStyle.fill;
+    paint.style = PaintingStyle.fill;
+
+    double displayRadius = radius / 100 * _canvasSize;
     canvas.drawCircle(center, displayRadius, paint);
 
     //  outline part
     paint.color = Colors.black;
     paint.strokeWidth = 1;
-    paint.style=PaintingStyle.stroke;
+    paint.style = PaintingStyle.stroke;
     {
       Path path = Path();
-      path.addArc(Rect.fromCircle(center: center,  radius: displayRadius), 0, 2*pi);
+      path.addArc(
+          Rect.fromCircle(center: center, radius: displayRadius), 0, 2 * pi);
       canvas.drawPath(path, paint);
     }
 
     //  side view
     paint.strokeWidth = 3;
     paint.color = Colors.black;
-    paint.style=PaintingStyle.fill;
+    paint.style = PaintingStyle.fill;
     double y = sideViewHeight + sideViewHeight * _height;
     canvas.drawLine(
         Offset(center.dx, y - sideViewHeight), Offset(center.dx, y), paint);
@@ -297,8 +307,6 @@ class _Mobile_part extends _Centered_part {
   final double radius;
   final Color color;
   final double gap;
-
-  double displayRadius;
 }
 
 class _CrossBar extends _Centered_part {
@@ -374,7 +382,7 @@ class BobsCustomPainter extends CustomPainter {
 
       {
         //  todo: temp
-        _theta += 0.05;
+        _theta += 0.075;
         double t = _theta;
         for (_CrossBar _crossBar in _crossBars) {
           _crossBar.theta = t;
@@ -382,7 +390,7 @@ class BobsCustomPainter extends CustomPainter {
         }
       }
 
-      _crossBars.last?.paint(canvas);
+      _crossBars[_counter - 2].paint(canvas);
     } catch (exception, stackTrace) {
       print(exception);
       print(stackTrace);
