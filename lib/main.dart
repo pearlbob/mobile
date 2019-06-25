@@ -13,13 +13,16 @@ const Color _green = Color(_alpha + 0x6bde54);
 const Color _red = Color(_alpha + 0xcc3030);
 
 List<_Mobile_part> _mobileParts = [
+  _Mobile_part(10, _black, 2),//1
+  _Mobile_part(8.6, _green, 2),
+  _Mobile_part(7.4, _blue, 2),
   _Mobile_part(6.4, _red, 2),
-  _Mobile_part(5.6, _green, 2),
+  _Mobile_part(5.6, _green, 2),//5
   _Mobile_part(4.8, _blue, -1),
   _Mobile_part(4.3, _black, -2),
   _Mobile_part(4, _red, -4),
   _Mobile_part(3.6, _green, 2),
-  _Mobile_part(3, _blue, 0),
+  _Mobile_part(3, _blue, 0),//10
 ];
 List<_CrossBar> _crossBars = new List();
 
@@ -234,7 +237,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 const double _min_radius = 3;
-const double _max_radius = 7;
+const double _max_radius = 10;
 const double sideViewHeight = 25;
 
 class _Centered_part {
@@ -371,7 +374,7 @@ class BobsCustomPainter extends CustomPainter {
 
       {
         //  todo: temp
-        _theta += 0.02;
+        _theta += 0.05;
         double t = _theta;
         for (_CrossBar _crossBar in _crossBars) {
           _crossBar.theta = t;
