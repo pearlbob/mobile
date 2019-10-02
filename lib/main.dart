@@ -12,17 +12,17 @@ const Color _black = Color(_alpha + 0);
 const Color _green = Color(_alpha + 0x6bde54);
 const Color _red = Color(_alpha + 0xcc3030);
 
-List<_Mobile_part> _mobileParts = [
-  _Mobile_part(10, _black, 4), //0
-  _Mobile_part(8.6, _green, 4),
-  _Mobile_part(7.4, _blue, 3),
-  _Mobile_part(6.4, _red, 2),
-  _Mobile_part(5.6, _green, 2),
-  _Mobile_part(4.8, _blue, 0), //5
-  _Mobile_part(4.3, _black, -2),
-  _Mobile_part(4, _red, -4),
-  _Mobile_part(3.6, _green, 2),
-  _Mobile_part(3, _blue, 0), //9
+List<_MobilePart> _mobileParts = [
+  _MobilePart(10, _black, 4), //0
+  _MobilePart(8.6, _green, 4),
+  _MobilePart(7.4, _blue, 3),
+  _MobilePart(6.4, _red, 2),
+  _MobilePart(5.6, _green, 2),
+  _MobilePart(4.8, _blue, 0), //5
+  _MobilePart(4.3, _black, -2),
+  _MobilePart(4, _red, -4),
+  _MobilePart(3.6, _green, 2),
+  _MobilePart(3, _blue, 0), //9
 ];
 List<_CrossBar> _crossBars = new List();
 
@@ -72,7 +72,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Timer _everyTick;
 
   @override
   void initState() {
@@ -83,7 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     // defines a timer
-    _everyTick = Timer.periodic(Duration(milliseconds: 16), (Timer t) {
+    Timer.periodic(Duration(milliseconds: 16), (Timer t) {
       setState(() {
         //  just tick to force repaint
       });
@@ -98,9 +97,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     //  locate parts initial position
     {
-      _Mobile_part lastPart;
+      _MobilePart lastPart;
       for (int i = partLimit; i < _mobileParts.length; i++) {
-        _Mobile_part part = _mobileParts[i];
+        _MobilePart part = _mobileParts[i];
         if (lastPart != null) {
           lastX += (lastPart.gap + lastPart.radius) / 100 * _canvasSize;
         }
@@ -119,11 +118,11 @@ class _MyHomePageState extends State<MyHomePage> {
     //  derive balance points from weights
     {
       _crossBars.clear();
-      _Centered_part lastCenteredPart;
+      _CenteredPart lastCenteredPart;
       double dTheta = pi / 25;
       double theta = 0;
       for (int i = _mobileParts.length - 1; i >= partLimit; i--) {
-        _Mobile_part part = _mobileParts[i];
+        _MobilePart part = _mobileParts[i];
         if (lastCenteredPart != null) {
           _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
           theta += dTheta;
@@ -247,7 +246,7 @@ const double _min_radius = 3;
 const double _max_radius = 10;
 const double sideViewHeight = 25;
 
-class _Centered_part {
+class _CenteredPart {
   void paint(Canvas canvas) {}
   Offset center = Offset(0, 0);
   double weight;
@@ -259,8 +258,8 @@ class _Centered_part {
   int _height = 1;
 }
 
-class _Mobile_part extends _Centered_part {
-  _Mobile_part(
+class _MobilePart extends _CenteredPart {
+  _MobilePart(
     this.radius,
     this.color,
     this.gap,
@@ -309,7 +308,7 @@ class _Mobile_part extends _Centered_part {
   final double gap;
 }
 
-class _CrossBar extends _Centered_part {
+class _CrossBar extends _CenteredPart {
   _CrossBar(this.partEnd, this.joinEnd) {
     weight = partEnd.weight + joinEnd.weight;
     balanceRatio = joinEnd.weight / weight;
@@ -360,8 +359,8 @@ class _CrossBar extends _Centered_part {
     joinEnd.setHeight(height + 1);
   }
 
-  final _Mobile_part partEnd;
-  final _Centered_part joinEnd;
+  final _MobilePart partEnd;
+  final _CenteredPart joinEnd;
   double balanceRatio; //  partEnd.weight/joinEnd.weight
   double partLength;
   double joinLength;
