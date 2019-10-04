@@ -1,6 +1,6 @@
 # mobile
 
-An introduction to Flutter/Dart
+bob's introduction to Flutter/Dart
 
 ## Sample mobile simulation
 
