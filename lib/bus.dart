@@ -1,3 +1,6 @@
+
+import 'package:mobile/reporter/lib/reporter.dart';
+@Todo("todo_name", todoUrl: "todoUrl...or so")
 void main() {
   BusMessageType("SampleData", {
     "b": bool,
@@ -42,7 +45,7 @@ class BusMessageType {
     //  enforce a limited number of types for message content
     members.forEach((s, type) {
       if (type != bool && type != int && type != double && type != String)
-        throw new Exception("BusMessage type not allowed: " + type.toString());
+        throw new Exception("BusMessageType: $name: type not allowed: " + type.toString());
     });
     _name = name;
     _members = members;
@@ -142,6 +145,10 @@ class BusMessageValue {
 
 void test() {
   SampleData data = new SampleData();
+
+  ImmutableSampleData localVar = data.getImmutable();
+  print("localVar" + (localVar.s == null ? " null" : " not null: "+localVar.s) );
+
   data.i = 345;
   print(data.i);
   print(data.y);
@@ -149,6 +156,11 @@ void test() {
   data.x = 1;
   data.y = 2;
   data.s = "bob";
+
+  print("localVar" + (localVar.s == null ? " null" : " not null: "+localVar.s) );
+  localVar = data.getImmutable();
+  print("localVar" + (localVar.s == null ? " null" : " not null: "+localVar.s) );
+
   ImmutableSampleData imData = data.getImmutable();
   print(imData.i);
   print(imData.y);
@@ -192,9 +204,13 @@ class SampleData {
 class ImmutableSampleData {
   //  public read access
   bool get b => _b;
+
   int get i => _i;
+
   double get x => _x;
+
   double get y => _y;
+
   String get s => _s;
 
   //  private values
@@ -218,6 +234,7 @@ class ImmutableSampleData {
     }
     return _busMessageValues;
   }
+
   List<BusMessageValue> _busMessageValues;
 }
 
@@ -244,11 +261,11 @@ class ImmutableCapstanVelocity {
     if (_busMessageValues == null) {
       //  lazy compute
       _busMessageValues = new List<BusMessageValue>();
-      _busMessageValues.add(new BusMessageValue("capstanVelocity", double, _capstanVelocity));
+      _busMessageValues.add(
+          new BusMessageValue("capstanVelocity", double, _capstanVelocity));
     }
     return _busMessageValues;
   }
+
   List<BusMessageValue> _busMessageValues;
 }
-
-

@@ -1,0 +1,15 @@
+targets:
+  $default:
+    builders:
+      generator|reporter:
+        enabled: true
+
+builders:
+  reporter:
+    target: ":generator"
+    import: "package:generator/builder.dart"
+    builder_factories: ["reporter"]
+    build_extensions: {".dart": [".reporter.g.part"]}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ["source_gen|combining_builder"]

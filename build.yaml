@@ -1,0 +1,9 @@
+# Read about `build.yaml` at https://pub.dev/packages/build_config
+builders:
+
+  copyBuilder:
+    import: "package:mobile/builder.dart"
+    builder_factories: ["busMessageTypeBuilder"]
+    build_extensions: {".bus": [".bus.dart"]}
+    build_to: source
+    auto_apply: root_package
