@@ -1,0 +1,4 @@
+
+class BusMessage {
+  const BusMessage();
+}

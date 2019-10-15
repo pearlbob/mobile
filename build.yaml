@@ -1,9 +1,11 @@
 # Read about `build.yaml` at https://pub.dev/packages/build_config
-builders:
 
-  copyBuilder:
-    import: "package:mobile/builder.dart"
-    builder_factories: ["busMessageTypeBuilder"]
-    build_extensions: {".bus": [".bus.dart"]}
-    build_to: source
-    auto_apply: root_package
+targets:
+  $default:
+    builders:
+      # Configure the builder `pkg_name|builder_name`
+      # In this case, the member_count builder defined in `../example`
+      message_bus:
+        # Only run this builder on the specified input.
+        generate_for:
+          - lib/library_source.dart

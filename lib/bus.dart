@@ -1,7 +1,7 @@
 
-import 'package:mobile/reporter/lib/reporter.dart';
-@Todo("todo_name", todoUrl: "todoUrl...or so")
+
 void main() {
+
   BusMessageType("SampleData", {
     "b": bool,
     "i": int,
@@ -17,7 +17,7 @@ void main() {
 }
 
 class BusMessageMember {
-  BusMessageMember(this._name, this._type) {}
+  BusMessageMember(this._name, this._type) ;
 
   String get name => _name;
 
@@ -105,7 +105,7 @@ class BusMessageType {
     print("  }");
     print("  List<BusMessageValue> _busMessageValues;");
 
-    List<BusMessageValue> _busMessageValues;
+    //List<BusMessageValue> _busMessageValues;
 
     print("}");
     print("");
@@ -130,7 +130,7 @@ class BusMessageType {
 }
 
 class BusMessageValue {
-  BusMessageValue(this._name, this._type, this._value) {}
+  BusMessageValue(this._name, this._type, this._value) ;
 
   get name => _name;
 
