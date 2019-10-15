@@ -12,6 +12,16 @@ class BusMessageGenerator extends GeneratorForAnnotation<BusMessage> {
 
     final buffer = StringBuffer();
     if (element is ClassElement) {
+      //  verify the types match our limited content
+      for (var fieldElement in element.fields) {
+        if (!fieldElement.type.isDartCoreBool &&
+            !fieldElement.type.isDartCoreInt &&
+            !fieldElement.type.isDartCoreDouble &&
+            !fieldElement.type.isDartCoreString)
+          throw Exception(
+              'bus message content type cannot be: ${fieldElement.type.toString()}');
+      }
+
       buffer
         ..writeln('//  a public immutable class modeled after ${element.name}')
         ..writeln('class Immutable${element.name} {')
@@ -25,7 +35,8 @@ class BusMessageGenerator extends GeneratorForAnnotation<BusMessage> {
         ..writeln('  );')
         ..writeln()
         ..writeln('  //  public constructor from mutable class')
-        ..writeln('  static Immutable${element.name} getImmutable(${element.name} m ) {')
+        ..writeln(
+            '  static Immutable${element.name} getImmutable(${element.name} m ) {')
         ..write('    return Immutable${element.name}(');
       for (var fieldElement in element.fields) {
         buffer.writeln('    m.${fieldElement.name},');
