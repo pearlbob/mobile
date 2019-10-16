@@ -4,7 +4,7 @@ import 'package:source_gen/source_gen.dart';
 
 import '../annotations.dart';
 
-class BusMessageGenerator extends GeneratorForAnnotation<BusMessageType> {
+class BusMessageTypeGenerator extends GeneratorForAnnotation<BusMessageType> {
   @override
   String generateForAnnotatedElement(
       Element element, ConstantReader annotation, BuildStep buildStep) {
@@ -43,9 +43,11 @@ class BusMessageGenerator extends GeneratorForAnnotation<BusMessageType> {
       }
 
       buffer
-        ..writeln('//  a public immutable class modeled after the ${element.name} class')
+        ..writeln(
+            '//  a public immutable class modeled after the ${element.name} class')
         ..writeln('//  notice that only limited data types are supported.')
-        ..writeln('//  notice that no methods other than getters or ImmutableBusMessageType methods are provided.')
+        ..writeln(
+            '//  notice that no methods other than getters or ImmutableBusMessageType methods are provided.')
         ..writeln(
             'class Immutable${element.name}BusMessageType extends ImmutableBusMessageType {')
         ..writeln('')
@@ -88,15 +90,19 @@ class BusMessageGenerator extends GeneratorForAnnotation<BusMessageType> {
         buffer
             .writeln('        "${fieldElement.name}": _${fieldElement.name},');
       }
-      buffer..writeln('      };')..writeln('return _map;');
-      buffer..writeln('    }')..writeln('  Map<String, dynamic> _map;');
+      buffer
+        ..writeln('      };')
+        ..writeln('return _map;')
+        ..writeln('    }')
+        ..writeln('  Map<String, dynamic> _map;');
 
       buffer.writeln('}');
 
       //  generate the mutable class
       buffer
         ..writeln()
-        ..writeln('//  class for sourcing ${element.name} data model message types')
+        ..writeln(
+            '//  class for sourcing ${element.name} data model message types')
         ..writeln(
             'class ${element.name}BusMessageType extends ${element.name} implements MutableBusMessageType {')
         ..writeln('    @override')

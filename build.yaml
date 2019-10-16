@@ -8,4 +8,4 @@ targets:
       message_bus|property_busMessage:
         # Only run this builder on the specified input.
         generate_for:
-          - lib/library_source.dart
+          - lib/bus_*.dart

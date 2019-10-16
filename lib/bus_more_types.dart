@@ -1,21 +1,21 @@
 
 import 'package:message_bus/annotations.dart';
 
-part 'library_source.g.dart';
+part 'bus_more_types.g.dart';
 
 
 @BusMessageType()
-class Foo {
+class OtherFoo {
   int foo;
   String bar;
 
-//  Foo(){ foo = 0; bar = "none";}
-//  Foo.bar(this.bar);
-//  Foo.foo(this.foo);
+  OtherFoo(){ foo = 0; bar = "none other";}
+//  OtherFoo.bar(this.bar);
+//  OtherFoo.foo(this.foo);
 }
 
 @BusMessageType()
-class SampleData {
+class OtherSampleData {
   bool b;
   int i;
   double x;
