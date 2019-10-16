@@ -12,5 +12,6 @@ class BusMessageMember {
 
 class BusMessage {
   BusMessage(this._members);
+  List<BusMessageMember> get members => _members;
   final List<BusMessageMember> _members;
 }
