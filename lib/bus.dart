@@ -7,21 +7,21 @@ void main() {
 
 void test() {
   {
-    Foo foo = Foo();
-    var im = ImmutableFooBusMessageType.getImmutable(foo);
-    foo.foo = 13;
-    foo.bar = "bob was here";
-    var im2 = ImmutableFooBusMessageType.getImmutable(foo);
+    FooBusMessageType foo = new FooBusMessageType();
+    var im = foo.getImmutable();
+    foo.value.foo = 13;
+    foo.value.bar = "bob was here";
+    var im2 = foo.getImmutable();
 
     print('${im.foo.toString()}: ${im.bar.toString()}');
     print('${im2.foo.toString()}: ${im2.bar.toString()}');
   }
   {
-    OtherFoo foo = OtherFoo();
-    var im = ImmutableOtherFooBusMessageType.getImmutable(foo);
-    foo.foo = 3;
-    foo.bar = "is this different?";
-    var im2 = ImmutableOtherFooBusMessageType.getImmutable(foo);
+    OtherFooBusMessageType foo = OtherFooBusMessageType();
+    var im = foo.getImmutable();
+    foo.value.foo = 3;
+    foo.value.bar = "is this different?";
+    var im2 = foo.getImmutable();
 
     print('${im.foo.toString()}: ${im.bar.toString()}');
     print('${im2.foo.toString()}: ${im2.bar.toString()}');

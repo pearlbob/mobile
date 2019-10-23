@@ -49,25 +49,14 @@ class BusMessageTypeGenerator extends GeneratorForAnnotation<BusMessageType> {
         ..writeln(
             '//  notice that no methods other than getters or ImmutableBusMessageType methods are provided.')
         ..writeln(
-            'class Immutable${element.name}BusMessageType extends ImmutableBusMessageType {')
+            'class Immutable${element.name}BusMessageType extends ImmutableBusMessageType<${element.name}> {')
         ..writeln('')
         ..writeln('  //    private constructor')
         ..writeln('  Immutable${element.name}BusMessageType._(');
       for (var fieldElement in element.fields) {
         buffer.writeln('    this._${fieldElement.name},');
       }
-      buffer
-        ..writeln('  );')
-        ..writeln()
-        ..writeln('  //  public constructor from mutable class')
-        ..writeln(
-            '  static Immutable${element.name}BusMessageType getImmutable(${element.name} m ) {')
-        ..write('    return Immutable${element.name}BusMessageType._(');
-      for (var fieldElement in element.fields) {
-        buffer.writeln('    m.${fieldElement.name},');
-      }
-
-      buffer..writeln('  );')..writeln('  }')..writeln('  //  public getters');
+      buffer..writeln('  );')..writeln()..writeln('  //  public getters');
       for (var fieldElement in element.fields) {
         buffer.writeln(
             '  ${fieldElement.type.toString()} get ${fieldElement.name} => _${fieldElement.name};');
@@ -99,18 +88,24 @@ class BusMessageTypeGenerator extends GeneratorForAnnotation<BusMessageType> {
       buffer.writeln('}');
 
       //  generate the mutable class
-      buffer
-        ..writeln()
-        ..writeln(
-            '//  class for sourcing ${element.name} data model message types')
-        ..writeln(
-            'class ${element.name}BusMessageType extends ${element.name} implements MutableBusMessageType {')
-        ..writeln('    @override')
-        ..writeln('    ImmutableBusMessageType getImmutable() {')
-        ..writeln(
-            '    return Immutable${element.name}BusMessageType.getImmutable(this);')
-        ..writeln('    }')
-        ..writeln('}');
+      buffer..write('''
+        
+          //  class for sourcing ${element.name} data model message content
+          class ${element.name}BusMessageType extends MutableBusMessageType<${element.name},Immutable${element.name}BusMessageType> {
+          ${element.name}BusMessageType(){
+            value = new ${element.name}();
+          }
+
+          //  public creator from mutable class')
+          Immutable${element.name}BusMessageType getImmutable() {
+            return Immutable${element.name}BusMessageType._(''');
+      for (var fieldElement in element.fields) {
+        buffer.writeln('    value.${fieldElement.name},');
+      }
+
+      buffer..writeln('''  );
+        }
+        }''');
 
       //  print(buffer.toString());   //  diagnostic only
     } else {

@@ -14,6 +14,7 @@ class Foo {
 //  Foo.foo(this.foo);
 }
 
+
 @BusMessageType()
 class SampleData {
   bool b;
