@@ -15,6 +15,10 @@ void test() {
 
     print('${im.foo.toString()}: ${im.bar.toString()}');
     print('${im2.foo.toString()}: ${im2.bar.toString()}');
+
+    ImmutableFooBusMessageType messageType = im2;
+    int i = messageType.foo;
+    String s = messageType.bar;
   }
   {
     OtherFooBusMessageType foo = OtherFooBusMessageType();
