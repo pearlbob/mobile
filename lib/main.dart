@@ -30,8 +30,18 @@ double _theta = 0.01; //  todo: temp
 double _canvasSize = 1440;
 int _counter = _mobileParts.length;
 
+/// This widget is the root of this application.
+/// <p>This is a demo Flutter/Dart app from bob.
+/// It's a slightly sophisticated implementation of a simple set of graphics.
+/// It was originally built as a test of flutter and was used to motivate
+/// the construction of a real Alexander Calder style mobile.
+/// </p>
+/// <p>The app was originally a flutter sample app.
+/// I've left a fair amount of the original commentary in the code
+/// simply because it will be useful to anyone new to flutter.
+/// </p>
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -72,6 +82,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+
+  /// initialize the state of the app
   @override
   void initState() {
     super.initState();
@@ -88,6 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  /// Build the declared parts into a structure that represents the mobile
   void _initParts() {
     double lastX = 0.5 * _canvasSize;
     double y = 0.5 * _canvasSize;
@@ -112,7 +125,7 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
 
-    //  compute cross arms
+    //  compute the cross arms
     //  i.e. derive arm length from initial positions
     //  derive balance points from weights
     {
@@ -125,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
         if (lastCenteredPart != null) {
           _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
           theta += dTheta;
-          _crossBar.theta = theta;
+          _crossBar._theta = theta;
           _crossBars.add(_crossBar);
           lastCenteredPart = _crossBar;
         } else
@@ -137,6 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _crossBars.last?.setHeight(0);
   }
 
+  /// arrange to have more mobile parts
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -151,6 +165,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  /// arrange to have fewer mobile parts
   void _decrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -175,6 +190,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  ///  when the underlying mobile state data changes,
+  ///  this build will re-create the mobile display.
+  ///  this is even called when the position of the parts is changed
+  ///  every 60th of a second by the timer.
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -245,6 +264,9 @@ const double _min_radius = 3;
 const double _max_radius = 10;
 const double sideViewHeight = 25;
 
+/// a class that represents any mobile part with a center
+/// and a weight.  this is a base class for both the mobile parts
+/// and the cross bars.
 class _CenteredPart {
   void paint(Canvas canvas) {}
   Offset center = Offset(0, 0);
@@ -257,6 +279,7 @@ class _CenteredPart {
   int _height = 1;
 }
 
+/// a circular mobile part
 class _MobilePart extends _CenteredPart {
   _MobilePart(
     this.radius,
@@ -269,6 +292,7 @@ class _MobilePart extends _CenteredPart {
     weight = 2 * pi * radius * radius;
   }
 
+  /// paint this mobile part on the given canvas
   @override
   void paint(Canvas canvas) {
     //  draw the part
@@ -307,33 +331,36 @@ class _MobilePart extends _CenteredPart {
   final double gap;
 }
 
+/// the crossbar that typically holds a mobile part
+/// at one end and another crossbar at the other.
 class _CrossBar extends _CenteredPart {
   _CrossBar(this.partEnd, this.joinEnd) {
     weight = partEnd.weight + joinEnd.weight;
-    balanceRatio = joinEnd.weight / weight;
+    _balanceRatio = joinEnd.weight / weight;
     double d = (partEnd.center - joinEnd.center).distance;
     center = Offset(
-        partEnd.center.dx * balanceRatio +
-            joinEnd.center.dx * (1 - balanceRatio),
-        partEnd.center.dy * balanceRatio +
-            joinEnd.center.dy * (1 - balanceRatio));
-    partLength = d * balanceRatio;
-    joinLength = d * (1 - balanceRatio);
-    assert((partEnd.weight * partLength - joinEnd.weight * joinLength).abs() <
+        partEnd.center.dx * _balanceRatio +
+            joinEnd.center.dx * (1 - _balanceRatio),
+        partEnd.center.dy * _balanceRatio +
+            joinEnd.center.dy * (1 - _balanceRatio));
+    _partLength = d * _balanceRatio;
+    _joinLength = d * (1 - _balanceRatio);
+    assert((partEnd.weight * _partLength - joinEnd.weight * _joinLength).abs() <
         1e-9);
   }
 
+  /// paint this crossbar on the given canvas
   @override
   void paint(Canvas canvas) {
     //  draw the part
-    partEnd.center = Offset(center.dx - partLength * cos(theta),
-        center.dy - partLength * sin(theta));
-    joinEnd.center = Offset(center.dx + joinLength * cos(theta),
-        center.dy + joinLength * sin(theta));
+    partEnd.center = Offset(center.dx - _partLength * cos(_theta),
+        center.dy - _partLength * sin(_theta));
+    joinEnd.center = Offset(center.dx + _joinLength * cos(_theta),
+        center.dy + _joinLength * sin(_theta));
 
     //  up view
     final paint = Paint();
-    paint.color = Colors.black;
+    paint.color = Colors.black54;
     paint.strokeWidth = 3;
     canvas.drawLine(partEnd.center, joinEnd.center, paint);
     canvas.drawCircle(center, 6, paint);
@@ -359,11 +386,11 @@ class _CrossBar extends _CenteredPart {
   }
 
   final _MobilePart partEnd;
-  final _CenteredPart joinEnd;
-  double balanceRatio; //  partEnd.weight/joinEnd.weight
-  double partLength;
-  double joinLength;
-  double theta = 0;
+  final _CenteredPart joinEnd;  //  this is usually another crossbar but is a mobile part at the bottom crossbar
+  double _balanceRatio; //  partEnd.weight/joinEnd.weight
+  double _partLength;
+  double _joinLength;
+  double _theta = 0;
 }
 
 class BobsCustomPainter extends CustomPainter {
@@ -373,23 +400,28 @@ class BobsCustomPainter extends CustomPainter {
     _canvasSize = max(size.width, size.height);
 
     try {
+      //  blank the canvas with white.
       final paint = Paint();
       paint.color = Color(0xfff7f4ef); //  super_white
       Rect rect = new Rect.fromLTWH(0, 0, _canvasSize, _canvasSize);
       canvas.drawRect(rect, paint);
 
       {
-        //  todo: temp
+        //  todo: temp, this is not physics,
+        //  it just makes an interesting clock-like pattern
+        //  rotate the bottom crossbar at a reasonable rate,
+        //  rotate all the others by half of the lower crossbar rate
         _theta += 0.075;
         double t = _theta;
         for (_CrossBar _crossBar in _crossBars) {
-          _crossBar.theta = t;
+          _crossBar._theta = t;
           t /= 2;
         }
       }
 
       _crossBars[_counter - 2].paint(canvas);
     } catch (exception, stackTrace) {
+      //  oops, something went wrong
       print(exception);
       print(stackTrace);
     }
@@ -397,6 +429,6 @@ class BobsCustomPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;
+    return true;  //  always, i.e. once a clock tick
   }
 }
