@@ -12,19 +12,24 @@ const Color _black = Color(_alpha + 0);
 const Color _green = Color(_alpha + 0x6bde54);
 const Color _red = Color(_alpha + 0xcc3030);
 
-List<_MobilePart> _mobileParts = [
-  _MobilePart(10, _black, 4), //0
-  _MobilePart(8.6, _green, 4),
-  _MobilePart(7.4, _blue, 3),
-  _MobilePart(6.4, _red, 2),
-  _MobilePart(5.6, _green, 2),
-  _MobilePart(4.8, _blue, 0), //5
-  _MobilePart(4.3, _black, -2),
-  _MobilePart(4, _red, -4),
-  _MobilePart(3.6, _green, 2),
-  _MobilePart(3, _blue, 0), //9
+//  list all the mobile parts
+//  in order of their height (highest first)
+//  they will be connected by crossbars of the defined size
+List<MobilePart> _mobileParts = [
+  MobilePart(10, _black, 4), //0
+  MobilePart(8.6, _green, 4),
+  MobilePart(7.4, _blue, 3),
+  MobilePart(6.4, _red, 2),
+  MobilePart(5.6, _green, 2),
+  MobilePart(4.8, _blue, 0), //5
+  MobilePart(4.3, _black, -2),
+  MobilePart(4, _red, -4),
+  MobilePart(3.6, _green, 2),
+  MobilePart(3, _blue, 0), //9
 ];
-List<_CrossBar> _crossBars = new List();
+
+//  the generated list of the mobile's crossbars
+List<CrossBar> _crossBars = new List();
 
 double _theta = 0.01; //  todo: temp
 double _canvasSize = 1440;
@@ -41,7 +46,6 @@ int _counter = _mobileParts.length;
 /// simply because it will be useful to anyone new to flutter.
 /// </p>
 class MyApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -82,7 +86,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   /// initialize the state of the app
   @override
   void initState() {
@@ -109,9 +112,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     //  locate parts initial position
     {
-      _MobilePart lastPart;
+      MobilePart lastPart;
       for (int i = partLimit; i < _mobileParts.length; i++) {
-        _MobilePart part = _mobileParts[i];
+        MobilePart part = _mobileParts[i];
         if (lastPart != null) {
           lastX += (lastPart.gap + lastPart.radius) / 100 * _canvasSize;
         }
@@ -130,13 +133,13 @@ class _MyHomePageState extends State<MyHomePage> {
     //  derive balance points from weights
     {
       _crossBars.clear();
-      _CenteredPart lastCenteredPart;
+      CenteredPart lastCenteredPart;
       double dTheta = pi / 25;
       double theta = 0;
       for (int i = _mobileParts.length - 1; i >= partLimit; i--) {
-        _MobilePart part = _mobileParts[i];
+        MobilePart part = _mobileParts[i];
         if (lastCenteredPart != null) {
-          _CrossBar _crossBar = new _CrossBar(part, lastCenteredPart);
+          CrossBar _crossBar = new CrossBar(part, lastCenteredPart);
           theta += dTheta;
           _crossBar._theta = theta;
           _crossBars.add(_crossBar);
@@ -146,7 +149,10 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     }
 
+    //  put the highest crossbar in the center of the canvas
     _crossBars.last?.center = Offset(0.5 * _canvasSize, y);
+
+    //  put the highest crossbar at a height of zero
     _crossBars.last?.setHeight(0);
   }
 
@@ -236,7 +242,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Spacer(),
                 Text(
                   '$_counter',
-                  style: Theme.of(context).textTheme.display1,
+                  style: Theme.of(context).textTheme.headline4,
                 ),
                 Spacer(),
                 IconButton(
@@ -267,21 +273,27 @@ const double sideViewHeight = 25;
 /// a class that represents any mobile part with a center
 /// and a weight.  this is a base class for both the mobile parts
 /// and the cross bars.
-class _CenteredPart {
+class CenteredPart {
   void paint(Canvas canvas) {}
+
+  /// center location in pixels of the part
   Offset center = Offset(0, 0);
+
+  /// the weight of the part and all of it's childen (lower mobile parts)
   double weight;
 
+  /// set the height (offset from the ceiling) of this mobile part
   void setHeight(int height) {
     _height = height;
   }
 
+  /// the height of the part
   int _height = 1;
 }
 
 /// a circular mobile part
-class _MobilePart extends _CenteredPart {
-  _MobilePart(
+class MobilePart extends CenteredPart {
+  MobilePart(
     this.radius,
     this.color,
     this.gap,
@@ -309,8 +321,7 @@ class _MobilePart extends _CenteredPart {
     paint.style = PaintingStyle.stroke;
     {
       Path path = Path();
-      path.addArc(
-          Rect.fromCircle(center: center, radius: displayRadius), 0, 2 * pi);
+      path.addArc(Rect.fromCircle(center: center, radius: displayRadius), 0, 2 * pi);
       canvas.drawPath(path, paint);
     }
 
@@ -319,44 +330,41 @@ class _MobilePart extends _CenteredPart {
     paint.color = Colors.black;
     paint.style = PaintingStyle.fill;
     double y = sideViewHeight + sideViewHeight * _height;
-    canvas.drawLine(
-        Offset(center.dx, y - sideViewHeight), Offset(center.dx, y), paint);
+    canvas.drawLine(Offset(center.dx, y - sideViewHeight), Offset(center.dx, y), paint);
     paint.color = color;
-    canvas.drawLine(Offset(center.dx - displayRadius, y),
-        Offset(center.dx + displayRadius, y), paint);
+    canvas.drawLine(Offset(center.dx - displayRadius, y), Offset(center.dx + displayRadius, y), paint);
   }
 
+  /// the radius of the circular mobile part
   final double radius;
+
+  /// the color of the mobile part
   final Color color;
+
+  /// the gap between the mobile part and it's next lower mobile part
   final double gap;
 }
 
 /// the crossbar that typically holds a mobile part
 /// at one end and another crossbar at the other.
-class _CrossBar extends _CenteredPart {
-  _CrossBar(this.partEnd, this.joinEnd) {
+class CrossBar extends CenteredPart {
+  CrossBar(this.partEnd, this.joinEnd) {
     weight = partEnd.weight + joinEnd.weight;
     _balanceRatio = joinEnd.weight / weight;
     double d = (partEnd.center - joinEnd.center).distance;
-    center = Offset(
-        partEnd.center.dx * _balanceRatio +
-            joinEnd.center.dx * (1 - _balanceRatio),
-        partEnd.center.dy * _balanceRatio +
-            joinEnd.center.dy * (1 - _balanceRatio));
+    center = Offset(partEnd.center.dx * _balanceRatio + joinEnd.center.dx * (1 - _balanceRatio),
+        partEnd.center.dy * _balanceRatio + joinEnd.center.dy * (1 - _balanceRatio));
     _partLength = d * _balanceRatio;
     _joinLength = d * (1 - _balanceRatio);
-    assert((partEnd.weight * _partLength - joinEnd.weight * _joinLength).abs() <
-        1e-9);
+    assert((partEnd.weight * _partLength - joinEnd.weight * _joinLength).abs() < 1e-9);
   }
 
   /// paint this crossbar on the given canvas
   @override
   void paint(Canvas canvas) {
     //  draw the part
-    partEnd.center = Offset(center.dx - _partLength * cos(_theta),
-        center.dy - _partLength * sin(_theta));
-    joinEnd.center = Offset(center.dx + _joinLength * cos(_theta),
-        center.dy + _joinLength * sin(_theta));
+    partEnd.center = Offset(center.dx - _partLength * cos(_theta), center.dy - _partLength * sin(_theta));
+    joinEnd.center = Offset(center.dx + _joinLength * cos(_theta), center.dy + _joinLength * sin(_theta));
 
     //  up view
     final paint = Paint();
@@ -367,17 +375,17 @@ class _CrossBar extends _CenteredPart {
 
     //  side view
     double y = sideViewHeight + sideViewHeight * _height;
-    canvas.drawLine(
-        Offset(partEnd.center.dx, y), Offset(joinEnd.center.dx, y), paint);
+    canvas.drawLine(Offset(partEnd.center.dx, y), Offset(joinEnd.center.dx, y), paint);
     canvas.drawCircle(Offset(center.dx, y), 6, paint);
-    canvas.drawLine(Offset(joinEnd.center.dx, y),
-        Offset(joinEnd.center.dx, y + sideViewHeight), paint);
+    canvas.drawLine(Offset(joinEnd.center.dx, y), Offset(joinEnd.center.dx, y + sideViewHeight), paint);
 
     //  recurse down
     partEnd.paint(canvas);
     joinEnd.paint(canvas);
   }
 
+  /// set the height (offset from the ceiling) of this mobile part
+  /// note that both sub-parts need to be one height lower, i.e. a larger offset
   @override
   void setHeight(int height) {
     super.setHeight(height);
@@ -385,14 +393,25 @@ class _CrossBar extends _CenteredPart {
     joinEnd.setHeight(height + 1);
   }
 
-  final _MobilePart partEnd;
-  final _CenteredPart joinEnd;  //  this is usually another crossbar but is a mobile part at the bottom crossbar
+  /// the end of the cross bar with a mobile part
+  final MobilePart partEnd;
+
+  ///  the end of the cross bar with another cross bar or a mobile part if at the bottom of the mobile
+  final CenteredPart joinEnd; //  this is usually another crossbar but is a mobile part at the bottom crossbar
+
+  /// balance fraction from the part end to the join end
   double _balanceRatio; //  partEnd.weight/joinEnd.weight
+  /// calculated length from the part end to the balance point
   double _partLength;
+
+  /// calculate length form the join end to the balance point
   double _joinLength;
+
+  /// current angle of the crossbar
   double _theta = 0;
 }
 
+/// paint the entire canvas with the mobile and the background
 class BobsCustomPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -413,13 +432,14 @@ class BobsCustomPainter extends CustomPainter {
         //  rotate all the others by half of the lower crossbar rate
         _theta += 0.075;
         double t = _theta;
-        for (_CrossBar _crossBar in _crossBars) {
+        for (CrossBar _crossBar in _crossBars) {
           _crossBar._theta = t;
           t /= 2;
         }
       }
 
-      _crossBars[_counter - 2].paint(canvas);
+      //  the heighest cross bar, and subsequently all of it's children
+      _crossBars.last.paint(canvas);
     } catch (exception, stackTrace) {
       //  oops, something went wrong
       print(exception);
@@ -429,6 +449,6 @@ class BobsCustomPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return true;  //  always, i.e. once a clock tick
+    return true; //  always, i.e. once a clock tick
   }
 }
