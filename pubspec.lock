@@ -298,13 +298,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.12.6"
-  message_bus:
-    dependency: "direct dev"
-    description:
-      path: message_bus
-      relative: true
-    source: path
-    version: "1.0.0"
   meta:
     dependency: transitive
     description:
