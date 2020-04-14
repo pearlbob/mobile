@@ -4,8 +4,10 @@ import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
+//  minimum main()
 void main() => runApp(MyApp());
 
+//  constants
 const int _alpha = 0xff000000;
 const Color _blue = Color(_alpha + 0x2196F3);
 const Color _black = Color(_alpha + 0);
@@ -31,8 +33,12 @@ List<MobilePart> _mobileParts = [
 //  the generated list of the mobile's crossbars
 List<CrossBar> _crossBars = new List();
 
-double _theta = 0.01; //  todo: temp
+double _theta = 0.01; //  todo: temporary concept to make a demo easy
+
+//  default, fixed canvas size  //  todo: can be replaced with a media read of size
 double _canvasSize = 1440;
+
+//  the count of mobile parts
 int _counter = _mobileParts.length;
 
 /// This widget is the root of this application.
@@ -91,9 +97,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
 
-    if (_crossBars.isEmpty) {
-      _initParts();
-    }
+    //  initialize the mobile stuff
+    _initParts();
 
     // defines a timer
     Timer.periodic(Duration(milliseconds: 16), (Timer t) {
@@ -186,16 +191,6 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  Widget _buildImage() {
-    return new CustomPaint(
-      painter: new BobsCustomPainter(),
-      child: Container(
-        width: 1440,
-        height: 1440,
-      ),
-    );
-  }
-
   ///  when the underlying mobile state data changes,
   ///  this build will re-create the mobile display.
   ///  this is even called when the position of the parts is changed
@@ -257,20 +252,26 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             FittedBox(
               fit: BoxFit.fitWidth,
-              child: _buildImage(),
+              child: CustomPaint(
+                painter: BobsCustomPainter(),
+                child: Container(
+                  width: 1440,
+                  height: 1440,
+                ),
+              ),
             ),
           ],
         ),
-      ),
+      ),        //  i'm reminded of my lisp days
     );
   }
 }
 
 const double _min_radius = 3;
 const double _max_radius = 10;
-const double sideViewHeight = 25;
+const double _sideViewHeight = 25;
 
-/// a class that represents any mobile part with a center
+/// a base class that represents any mobile part with a center
 /// and a weight.  this is a base class for both the mobile parts
 /// and the cross bars.
 class CenteredPart {
@@ -329,8 +330,8 @@ class MobilePart extends CenteredPart {
     paint.strokeWidth = 3;
     paint.color = Colors.black;
     paint.style = PaintingStyle.fill;
-    double y = sideViewHeight + sideViewHeight * _height;
-    canvas.drawLine(Offset(center.dx, y - sideViewHeight), Offset(center.dx, y), paint);
+    double y = _sideViewHeight + _sideViewHeight * _height;
+    canvas.drawLine(Offset(center.dx, y - _sideViewHeight), Offset(center.dx, y), paint);
     paint.color = color;
     canvas.drawLine(Offset(center.dx - displayRadius, y), Offset(center.dx + displayRadius, y), paint);
   }
@@ -374,10 +375,10 @@ class CrossBar extends CenteredPart {
     canvas.drawCircle(center, 6, paint);
 
     //  side view
-    double y = sideViewHeight + sideViewHeight * _height;
+    double y = _sideViewHeight + _sideViewHeight * _height;
     canvas.drawLine(Offset(partEnd.center.dx, y), Offset(joinEnd.center.dx, y), paint);
     canvas.drawCircle(Offset(center.dx, y), 6, paint);
-    canvas.drawLine(Offset(joinEnd.center.dx, y), Offset(joinEnd.center.dx, y + sideViewHeight), paint);
+    canvas.drawLine(Offset(joinEnd.center.dx, y), Offset(joinEnd.center.dx, y + _sideViewHeight), paint);
 
     //  recurse down
     partEnd.paint(canvas);
