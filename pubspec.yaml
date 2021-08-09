@@ -16,7 +16,7 @@ version: 1.0.0+1
 homepage: https://bsteele.com/index.html
 
 environment:
-  sdk: 2.14.0-383.0.dev
+  sdk: 2.14.0-385.0.dev
 
 dependencies:
   flutter:
