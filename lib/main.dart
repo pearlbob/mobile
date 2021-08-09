@@ -31,12 +31,12 @@ List<MobilePart> _mobileParts = [
 ];
 
 //  the generated list of the mobile's crossbars
-List<CrossBar> _crossBars = new List();
+List<CrossBar> _crossBars = [];
 
 double _theta = 0.01; //  todo: temporary concept to make a demo easy
 
 //  default, fixed canvas size  //  todo: can be replaced with a media read of size
-double _canvasSize = 1440;
+const double _canvasWidth = 600;
 
 //  the count of mobile parts
 int _counter = _mobileParts.length;
@@ -74,7 +74,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -110,23 +110,23 @@ class _MyHomePageState extends State<MyHomePage> {
 
   /// Build the declared parts into a structure that represents the mobile
   void _initParts() {
-    double lastX = 0.5 * _canvasSize;
-    double y = 0.5 * _canvasSize;
+    double lastX = 0.5 * _canvasWidth;
+    double y = 0.5 * _canvasWidth;
 
     final int partLimit = _mobileParts.length - _counter;
 
     //  locate parts initial position
     {
-      MobilePart lastPart;
+      MobilePart? lastPart;
       for (int i = partLimit; i < _mobileParts.length; i++) {
         MobilePart part = _mobileParts[i];
         if (lastPart != null) {
-          lastX += (lastPart.gap + lastPart.radius) / 100 * _canvasSize;
+          lastX += (lastPart.gap + lastPart.radius) / 100 * _canvasWidth;
         }
         lastPart = part;
 
         //  scale to display size
-        double r = part.radius / 100 * _canvasSize;
+        double r = part.radius / 100 * _canvasWidth;
         lastX += r;
 
         part.center = new Offset(lastX, y);
@@ -138,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //  derive balance points from weights
     {
       _crossBars.clear();
-      CenteredPart lastCenteredPart;
+      CenteredPart? lastCenteredPart;
       double dTheta = pi / 25;
       double theta = 0;
       for (int i = _mobileParts.length - 1; i >= partLimit; i--) {
@@ -155,10 +155,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     //  put the highest crossbar in the center of the canvas
-    _crossBars.last?.center = Offset(0.5 * _canvasSize, y);
+    _crossBars.last.center = Offset(0.5 * _canvasWidth, y);
 
     //  put the highest crossbar at a height of zero
-    _crossBars.last?.setHeight(0);
+    _crossBars.last.setHeight(0);
   }
 
   /// arrange to have more mobile parts
@@ -255,21 +255,21 @@ class _MyHomePageState extends State<MyHomePage> {
               child: CustomPaint(
                 painter: BobsCustomPainter(),
                 child: Container(
-                  width: 1440,
-                  height: 1440,
+                  width: _canvasWidth,
+                  height: _canvasWidth,
                 ),
               ),
             ),
           ],
         ),
-      ),        //  i'm reminded of my lisp days
+      ), //  i'm reminded of my lisp days
     );
   }
 }
 
 const double _min_radius = 3;
 const double _max_radius = 10;
-const double _sideViewHeight = 25;
+const double _sideViewHeight = 10;
 
 /// a base class that represents any mobile part with a center
 /// and a weight.  this is a base class for both the mobile parts
@@ -280,8 +280,8 @@ class CenteredPart {
   /// center location in pixels of the part
   Offset center = Offset(0, 0);
 
-  /// the weight of the part and all of it's childen (lower mobile parts)
-  double weight;
+  /// the weight of the part and all of it's children (lower mobile parts)
+  double weight = 0;
 
   /// set the height (offset from the ceiling) of this mobile part
   void setHeight(int height) {
@@ -298,10 +298,8 @@ class MobilePart extends CenteredPart {
     this.radius,
     this.color,
     this.gap,
-  )   : assert(radius != null),
-        assert(radius >= _min_radius),
-        assert(radius <= _max_radius),
-        assert(color != null) {
+  )   : assert(radius >= _min_radius),
+        assert(radius <= _max_radius) {
     weight = 2 * pi * radius * radius;
   }
 
@@ -313,7 +311,7 @@ class MobilePart extends CenteredPart {
     paint.color = color;
     paint.style = PaintingStyle.fill;
 
-    double displayRadius = radius / 100 * _canvasSize;
+    double displayRadius = radius / 100 * _canvasWidth;
     canvas.drawCircle(center, displayRadius, paint);
 
     //  outline part
@@ -401,12 +399,12 @@ class CrossBar extends CenteredPart {
   final CenteredPart joinEnd; //  this is usually another crossbar but is a mobile part at the bottom crossbar
 
   /// balance fraction from the part end to the join end
-  double _balanceRatio; //  partEnd.weight/joinEnd.weight
+  late double _balanceRatio; //  partEnd.weight/joinEnd.weight
   /// calculated length from the part end to the balance point
-  double _partLength;
+  late double _partLength;
 
   /// calculate length form the join end to the balance point
-  double _joinLength;
+  late double _joinLength;
 
   /// current angle of the crossbar
   double _theta = 0;
@@ -417,13 +415,13 @@ class BobsCustomPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     assert(size.width > 0 || size.height > 0);
-    _canvasSize = max(size.width, size.height);
+    //_canvasWidth = max(size.width, size.height);
 
     try {
       //  blank the canvas with white.
       final paint = Paint();
       paint.color = Color(0xfff7f4ef); //  super_white
-      Rect rect = new Rect.fromLTWH(0, 0, _canvasSize, _canvasSize);
+      Rect rect = new Rect.fromLTWH(0, 0, _canvasWidth, _canvasWidth);
       canvas.drawRect(rect, paint);
 
       {
@@ -439,7 +437,7 @@ class BobsCustomPainter extends CustomPainter {
         }
       }
 
-      //  the heighest cross bar, and subsequently all of it's children
+      //  the highest cross bar, and subsequently all of it's children
       _crossBars.last.paint(canvas);
     } catch (exception, stackTrace) {
       //  oops, something went wrong
